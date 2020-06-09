@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import './App.css';
 import {TaskType, Todolist} from "./Todolist";
 import {v1} from 'uuid';
+import {AddItemForm} from "./AddItemForm";
 
 export type FilterValuesType = "all" | "active" | "completed";
 
@@ -71,18 +72,47 @@ function App() {
             setTodolists([...todoLists]);
         }
     }
+    function changeTitle (taskId : string, title: string, todoListId: string) {
+
+        let task = tasks[todoListId].find(t => t.id === taskId);
+        if (task) {
+            task.title = title;
+            setTasks({...tasks});
+        }
+    }
 
     function changeStatus(taskId: string, isDone: boolean, todoListId: string) {
-        let todoList = tasks[todoListId];
-        let task = todoList.find(t => t.id === taskId);
+        //let todoTasks = tasks[todoListId];
+        let task = tasks[todoListId].find(t => t.id === taskId);
         if (task) {
             task.isDone = isDone;
             setTasks({...tasks});
         }
     }
 
+    function removeTodoList (todoListId:string) {
+        let newTodolists = todoLists.filter(tl => tl.id !== todoListId);
+        setTodolists(newTodolists);
+        delete tasks[todoListId];
+        setTasks({...tasks});
+    }
+    const addTodoList = (title: string) => {
+        const newTodoListId: string = v1() ;
+        const newTodoList: TodoListType = {
+            id: newTodoListId,
+            title: title,
+            filter: "all"
+        }
+        setTodolists([newTodoList, ...todoLists])
+        setTasks({
+            ...tasks,
+            [newTodoListId]: []
+        })
+    }
+
     return (
         <div className="App">
+            <AddItemForm addItem={addTodoList} />
             {todoLists.map(tl => {
                 let tasksForTodoList = tasks[tl.id];
                 if (tl.filter === "active") {
@@ -103,17 +133,11 @@ function App() {
                         addTask={addTask}
                         changeStatus={changeStatus}
                         filter={tl.filter}
+                        removeTodoList={removeTodoList}
+                        changeTitle={changeTitle}
                     />
                 )
             })}
-            {/*<Todolist title="What to learn"*/}
-            {/*          tasks={tasksForTodolist}*/}
-            {/*          filter = {filter}*/}
-            {/*          removeTask={removeTask}*/}
-            {/*          changeFilter={changeFilter}*/}
-            {/*          addTask={addTask}*/}
-            {/*          changeStatus={changeStatus}*/}
-            {/*/>*/}
         </div>
     );
 }
